@@ -1,5 +1,4 @@
-
-name: Testing Deply A simple php file
+name: Deploy Node.js App
 
 on:
   push:
@@ -9,22 +8,45 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: Deploy repository to production server
+    name: Build, Deploy, and Restart Node.js App
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x' # Specify your Node.js version
+        cache: 'npm'
+
+    - name: Install dependencies
+      # Using 'npm ci' is recommended for CI/CD for faster, more reliable installs
+      run: npm ci
+
+    - name: Build application
+      # This step is optional. If your app doesn't have a build step, you can remove it.
+      run: npm run build
 
     - name: Setup SSH Key
       uses: webfactory/ssh-agent@v0.9.0
       with:
         ssh-private-key: ${{ secrets.EC2_PRIVATE_KEY }}
 
-    - name: Deploy repository via rsync
-      # rsync is a powerful tool for synchronizing files
+    - name: Deploy to Server
+      # Syncs the necessary files/folders to the server
       run: |
-        rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" \
+        rsync -avz --delete \
+          --exclude='node_modules' \
           --exclude='.git*' \
           --exclude='.github*' \
           ./ ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${{ secrets.DEPLOYING_PATH }}
-        echo "✅ Deployment successful!"
+
+    - name: Restart application on server
+      # Connects to the server to install dependencies and restart the app with PM2
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
+        cd ${{ secrets.DEPLOYING_PATH }} &&
+        npm install --production &&
+        pm2 restart our_app
+        '
