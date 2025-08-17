@@ -23,7 +23,7 @@ jobs:
     - name: Deploy repository via rsync
       # rsync is a powerful tool for synchronizing files
       run: |
-        rsync -avz --delete \
+        rsync -avz --delete "ssh -o StrictHostKeyChecking=no" \
           --exclude='.git*' \
           --exclude='.github*' \
           ./ ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${{ secrets.DEPLOYING_PATH }}
