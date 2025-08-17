@@ -24,10 +24,6 @@ jobs:
       # Using 'npm ci' is recommended for CI/CD for faster, more reliable installs
       run: npm ci
 
-    - name: Build application
-      # This step is optional. If your app doesn't have a build step, you can remove it.
-      run: npm run build
-
     - name: Setup SSH Key
       uses: webfactory/ssh-agent@v0.9.0
       with:
