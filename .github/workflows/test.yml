@@ -44,5 +44,5 @@ jobs:
         ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
         cd ${{ secrets.DEPLOYING_PATH }} &&
         npm install --production &&
-        pm2 restart my_app
+        pm2 startOrRestart ecosystem.config.js --env production
         '
